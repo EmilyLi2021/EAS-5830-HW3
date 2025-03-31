@@ -4,7 +4,7 @@ from eth_account import Account
 import json
 import os
 
-URL = '​https://api.avax-test.network/ext/bc/C/rpc'
+URL = 'https://api.avax-test.network/ext/bc/C/rpc'
 abi_file = 'NFT.abi'
 contract_address = '0x85ac2e065d4526FBeE6a2253389669a12318A412'
 private_key = '0x90d95f1f6817ca2b02a8659feae338dda7f5d63d8fa0f10b0710c8a7d52c6397'
@@ -23,15 +23,19 @@ def main():
 
     # Get the account from the private key
     account = Account.from_key(private_key)
+
     # Get the nonce for the account
     nonce = w3.eth.getTransactionCount(account.address)
 
+    # Generate a random nonce
+    random_nonce = os.urandom(32)
+
     # Create the transaction
-    transaction = contract.functions.claim(nonce).buildTransaction({
+    transaction = contract.functions.claim(random_nonce).buildTransaction({
         'from': account.address,
         'nonce': nonce,
         'gas': 200000,
-        'gasPrice': w3.toWei('25', 'gwei')
+        'gasPrice': w3.to_wei('25', 'gwei')
     })
 
     # Sign the transaction
