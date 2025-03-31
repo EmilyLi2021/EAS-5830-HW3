@@ -27,6 +27,8 @@ def sign(m):
     assert isinstance(signed_message, eth_account.datastructures.SignedMessage)
     # print(f"signed message {signed_message}\nr= {signed_message.r}\ns= {signed_message.s}")
 
+    print('public key:', public_key)
+
     return public_key, signed_message
 
 
