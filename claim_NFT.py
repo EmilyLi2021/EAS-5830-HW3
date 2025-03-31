@@ -27,33 +27,42 @@ def main():
     # Get the nonce for the account
     nonce = w3.eth.getTransactionCount(account.address)
 
-    # Generate a random nonce
-    random_nonce = os.urandom(32)
+    for i in range(10):
+        # Generate a random nonce
+        random_nonce = os.urandom(32)
 
-    # Create the transaction
-    transaction = contract.functions.claim(random_nonce).buildTransaction({
-        'from': account.address,
-        'nonce': nonce,
-        'gas': 200000,
-        'gasPrice': w3.to_wei('25', 'gwei')
-    })
+        # Create the transaction
+        transaction = contract.functions.claim(random_nonce).buildTransaction({
+            'from': account.address,
+            'nonce': nonce,
+            'gas': 200000,
+            'gasPrice': w3.to_wei('25', 'gwei')
+        })
 
-    # Sign the transaction
-    signed_txn = w3.eth.account.sign_transaction(transaction, private_key=private_key)
+        # Sign the transaction
+        signed_txn = w3.eth.account.sign_transaction(transaction, private_key=private_key)
 
-    # Send the transaction
-    txn_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
-    print(f"Transaction sent with hash: {txn_hash.hex()}")
+        try:
+            # Send the transaction
+            txn_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+            print(f"Transaction sent with hash: {txn_hash.hex()}")
 
-    # Wait for the transaction to be mined
-    txn_receipt = w3.eth.waitForTransactionReceipt(txn_hash)
-    print(f"Transaction receipt: {txn_receipt}")
+            # Wait for the transaction to be mined
+            txn_receipt = w3.eth.waitForTransactionReceipt(txn_hash)
+            print(f"Transaction receipt: {txn_receipt}")
 
-    # Check if the transaction was successful
-    if txn_receipt.status == 1:
-        print("Transaction was successful!")
-    else:
-        print("Transaction failed.")
+            # check balance
+            balance = contract.functions.balanceOf(account.address).call()
+            print(f"Balance after claiming: {balance}")
+
+            if balance > 0:
+                print(f"NFT claimed successfully! Current balance: {balance}")
+                break
+            else:
+                print("NFT claim failed. Retrying...")
+        except Exception as e:
+            print(f"Error sending transaction: {e}")
+    
 
 if __name__ == '__main__':
     main()
