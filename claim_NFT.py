@@ -1,5 +1,5 @@
 from web3 import Web3
-from web3.middleware import geth_poa_middleware
+from web3.middleware import ExtraDataToPOAMiddleware
 from eth_account import Account
 import json
 import os
@@ -12,7 +12,7 @@ private_key = '0x90d95f1f6817ca2b02a8659feae338dda7f5d63d8fa0f10b0710c8a7d52c639
 def main():
     # Connect to the Avalanche Fuji testnet
     w3 = Web3(Web3.HTTPProvider(URL))
-    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+    w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
 
     # Load the contract ABI
     with open(abi_file, 'r') as abi_definition:
@@ -25,14 +25,14 @@ def main():
     account = Account.from_key(private_key)
 
     # Get the nonce for the account
-    nonce = w3.eth.getTransactionCount(account.address)
+    nonce = w3.eth.get_transaction_count(account.address)
 
     for i in range(10):
         # Generate a random nonce
         random_nonce = os.urandom(32)
 
         # Create the transaction
-        transaction = contract.functions.claim(random_nonce).buildTransaction({
+        transaction = contract.functions.claim(account.address, random_nonce).build_transaction({
             'from': account.address,
             'nonce': nonce,
             'gas': 200000,
@@ -44,11 +44,11 @@ def main():
 
         try:
             # Send the transaction
-            txn_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+            txn_hash = w3.eth.send_raw_transaction(signed_txn.raw_transaction)
             print(f"Transaction sent with hash: {txn_hash.hex()}")
 
             # Wait for the transaction to be mined
-            txn_receipt = w3.eth.waitForTransactionReceipt(txn_hash)
+            txn_receipt = w3.eth.wait_for_transaction_receipt(txn_hash)
             print(f"Transaction receipt: {txn_receipt}")
 
             # check balance
